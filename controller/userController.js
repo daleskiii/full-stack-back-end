@@ -8,6 +8,9 @@ const {
   updateUserById,
   getUserByCredentials,
   deleteUser,
+  addToCart,
+  getOrders,
+  deleteOrder,
 } = require("../queries/users");
 /// create user
 user.post("/", async (req, res) => {
@@ -15,7 +18,6 @@ user.post("/", async (req, res) => {
     const createdUser = await createUser(req.body);
 
     res.status(201).json(createdUser);
-    console.log(createdUser);
   } catch (e) {
     console.log(e);
     return e.message;
@@ -51,24 +53,12 @@ user.get("/:id", async (req, res) => {
 
 // UPDATE user
 user.put("/:id", async (req, res) => {
-  const id = req.params.id;
-  const { username, password_hash } = req.body;
-
-  try {
-    const updatedUser = await updateUserById(id, {
-      username,
-      password_hash,
-    });
-
-    if (updatedUser.length > 0) {
-      res.status(200).json(updatedUser[0]); // Return the updated user object
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
-    console.log(updatedUser);
-  } catch (e) {
-    console.log(e);
-    res.status(500).json({ message: "Internal server error" });
+  const updated = await updateUserById(req.params.id, req.body);
+  console.log(updated);
+  if (updated.length === 0) {
+    res.status(404).json({ message: "not found!" });
+  } else {
+    res.status(200).json(updated);
   }
 });
 
@@ -80,11 +70,11 @@ user.post("/login", async (req, res) => {
   try {
     const user = await getUserByCredentials(username, password_hash);
 
-    if (user) {
+    if (user.jwtToken) {
       res.status(200).json(user);
-      console.log(user);
+      console.log(user.jwtToken);
     } else {
-      res.status(404).json({ message: "Invalid credentials" });
+      res.status(401).json({ message: "Invalid credentials" });
     }
   } catch (e) {
     console.log(e);
@@ -93,14 +83,42 @@ user.post("/login", async (req, res) => {
 });
 
 //Delete!!
-
 user.delete("/:id", async (req, res) => {
   const deletedUser = await deleteUser(req.params.id);
 
-  if (deletedUser.length === 0) {
-    return res.status(404).json({ message: "No data found!", error: true });
-  } else {
-    res.json(deletedUser[0]);
+  return res.json(deletedUser);
+});
+/// post into cart
+
+user.post("/:id/orders", async (req, res) => {
+  const { user_id } = req.body;
+  const { product_id } = req.body;
+  try {
+    await addToCart(user_id, product_id);
+    res.status(201).json({ message: "product was added" });
+  } catch (e) {
+    console.log(e);
+  }
+});
+/// get orders by id
+
+user.get("/orders/:id", async (req, res) => {
+  try {
+    const orders = await getOrders(req.params.id);
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ error: "Error gttting orders" });
+  }
+});
+//delete product by id
+
+user.delete("/orders/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await deleteOrder(id);
+    res.status(200).json({ message: order });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting order" });
   }
 });
 
