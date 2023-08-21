@@ -1,6 +1,6 @@
 const express = require("express");
 const user = express.Router();
-
+const { checkName, checkPassword } = require("../validation/validation");
 const {
   createUser,
   getAllUsers,
@@ -13,7 +13,7 @@ const {
   deleteOrder,
 } = require("../queries/users");
 /// create user
-user.post("/", async (req, res) => {
+user.post("/", checkName, checkPassword, async (req, res) => {
   try {
     const createdUser = await createUser(req.body);
 
@@ -52,7 +52,7 @@ user.get("/:id", async (req, res) => {
 });
 
 // UPDATE user
-user.put("/:id", async (req, res) => {
+user.put("/:id", checkName, checkPassword, async (req, res) => {
   const updated = await updateUserById(req.params.id, req.body);
   console.log(updated);
   if (updated.length === 0) {
@@ -64,7 +64,7 @@ user.put("/:id", async (req, res) => {
 
 //get user by credentials
 
-user.post("/login", async (req, res) => {
+user.post("/login", checkName, checkPassword, async (req, res) => {
   const { username, password_hash } = req.body;
 
   try {

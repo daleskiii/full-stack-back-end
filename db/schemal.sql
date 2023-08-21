@@ -22,7 +22,7 @@ name VARCHAR(100),
   description TEXT,
   thc_content DECIMAL(5,2),
   cbd_content BOOLEAN,
-  price DECIMAL(10,2),
+  price INTEGER,
   image_URL VARCHAR(255)
 );
 
