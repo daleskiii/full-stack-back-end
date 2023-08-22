@@ -21,7 +21,6 @@ const createUser = async (data) => {
       "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING *",
       [data.username, bcryptPassword]
     );
-    console.log(newUser.id);
 
     const jwtToken = jwtGenerator(newUser.id);
 
@@ -54,7 +53,6 @@ const getUserByCredentials = async (username, inputPassword) => {
     }
     const jwtToken = jwtGenerator(user.id);
 
-    console.log(jwtToken);
     return { user, jwtToken };
   } catch (e) {
     console.log(e);
@@ -109,7 +107,32 @@ const updateUserById = async (id, data) => {
 // delete
 const deleteUser = async (id) => {
   try {
-    await db.any("DELETE FROM users WHERE id = $1 ", [id]);
+    const delefromCart = await db.any(
+      "DELETE FROM orders WHERE users_id = $1 RETURNING *",
+      [id]
+    );
+
+    const deleteProduct = await db.any(
+      "DELETE FROM orders WHERE product_id = $1 RETURNING *",
+      [id]
+    );
+
+    const deletedUser = await db.any("DELETE FROM users WHERE id = $1 ", [id]);
+
+    const order = await db.none(
+      `
+      DELETE FROM orders
+      WHERE id = $1;
+    `,
+      [id]
+    );
+
+    return {
+      user: deletedUser[0],
+      product: deleteProduct[0],
+      userincart: delefromCart,
+      order: order,
+    };
   } catch (e) {
     console.log(e);
   }
@@ -169,6 +192,7 @@ const deleteOrder = async (id) => {
       [id]
     );
     console.log(order);
+    return order;
   } catch (error) {
     console.error("Error deleting order:", error);
     throw error;
