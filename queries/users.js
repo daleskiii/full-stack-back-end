@@ -151,7 +151,7 @@ const addToCart = async (users_id, product_id) => {
     console.log(e);
   }
 };
-// slect products from cart
+// get orders by user
 
 const getOrders = async (id) => {
   try {
