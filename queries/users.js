@@ -141,14 +141,29 @@ const deleteUser = async (id) => {
 // add products to cart
 const addToCart = async (users_id, product_id) => {
   try {
-    const product = await db.one(
-      "INSERT INTO orders (users_id, product_id) VALUES ($1, $2) RETURNING *",
+    let product;
+
+    const productCheck = await db.oneOrNone(
+      "SELECT * FROM orders WHERE users_id = $1 AND product_id = $2",
       [users_id, product_id]
     );
 
+    if (productCheck) {
+      product = await db.one(
+        "UPDATE orders SET quantity = quantity + 1 WHERE users_id = $1 AND product_id = $2 RETURNING *",
+        [users_id, product_id]
+      );
+    } else {
+      product = await db.one(
+        "INSERT INTO orders (users_id, product_id,quantity) VALUES ($1, $2,1) RETURNING *",
+        [users_id, product_id]
+      );
+    }
+
     return product;
   } catch (e) {
-    console.log(e);
+    console.error("Error:", e);
+    throw e; // Rethrow the error to propagate it further if needed
   }
 };
 // get orders by user
