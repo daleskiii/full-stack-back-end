@@ -177,7 +177,9 @@ const getOrders = async (id) => {
         u.username AS user_username,
         p.name AS product_name,
         p.price AS product_price,
-        o.quantity AS order_quantity
+        o.quantity AS order_quantity, 
+        p.image_URL AS image_url
+       
       FROM
         orders o
       JOIN
